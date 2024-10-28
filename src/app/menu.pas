@@ -30,9 +30,9 @@ Begin
       Begin
         inicializarv(v);
         consulta_sintomas (v);
-        writeln('DIAGNOSTICANDO.....');
+        timer('DIAGNOSTICANDO ');
+        POSIBLES_ENFERMEDADES(m, v);
         READKEY;
-        //	DETERMINAR POSIBLES_ENFERMEDADES
       End;
   Until OPCION = 0;
 
