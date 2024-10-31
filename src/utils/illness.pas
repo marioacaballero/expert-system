@@ -7,14 +7,12 @@ Interface
 {$unitPath ./}
 
 Uses 
-symptoms, vectores;
+crt, sysUtils, symptoms, vectores;
 
 Procedure POSIBLES_ENFERMEDADES(m:T_matriz;v:T_vector);
 Function timer(text: String): string;
 
 Implementation
-
-Uses CRT;
 
 Const 
   diagnostico: array [1..g] Of string = ('Resfriado comun', 'Gripe',
@@ -35,7 +33,6 @@ Var i: byte;
 Begin
   clrscr;
   textcolor(green);
-  delay(500);
   write(text);
   For i:= 1 To 10 Do
     Begin
@@ -45,51 +42,53 @@ Begin
   writeln('');
 End;
 
+Function Resultado_Diagnostico(percentage: real; illnes: String): string;
+Begin
+  textcolor(blue);
+  WriteLn(' ');
+  write('POSIBLE ENFERMEDAD: ');
+  textcolor(red);
+  Write(FormatFloat('0.00', percentage),' % de tener ');
+  write(upcase(illnes));
+  textcolor(white);
+End;
+
 Procedure POSIBLES_ENFERMEDADES(m:T_matriz;v:T_vector);
 
 Var 
-  i, j: byte;
-  flag1, flag2: boolean;
+  i, j, illnessCount: byte;
+  flag: boolean;
+  possibleIllness: array [1..2] Of byte;
+  //1: illnessCount, 2: i
+  percentage: real;
 Begin
   i := 1;
-  flag1 := false;
-  While (i <= g) And (Not flag1) Do
+  flag := false;
+  While (i <= g) And (Not flag) Do
     Begin
-      j := 1;
-      flag2 := false;
-      While (j <= n) And (Not flag2) Do
+      illnessCount := 0;
+      For j:= 1 To n Do
+        If (v[j] = m[j, i]) Then
+          Inc(illnessCount);
+      If (illnessCount = n) Then
+        flag := true;
+      If (i = 1) Then
         Begin
-          If (v[j] = m[j, i]) Then
-            j := j + 1
-          Else
+          possibleIllness[1] := illnessCount;
+          possibleIllness[2] := i;
+        End
+      Else
+        Begin
+          If (illnessCount > possibleIllness[1]) Then
             Begin
-              i := i + 1;
-              flag2 := true;
+              possibleIllness[1] := illnessCount;
+              possibleIllness[2] := i;
             End;
         End;
-      If (Not flag2) Then
-        Begin
-          flag1 := true;
-        End;
+      Inc(i);
     End;
-  If (i <= g) Then
-    Begin
-      textcolor(blue);
-      WriteLn(' ');
-      write('POSIBLE ENFERMEDAD: ');
-      textcolor(red);
-      write(upcase(diagnostico[i]));
-      textcolor(white);
-    End
-  Else
-    Begin
-      textcolor(red);
-      WriteLn(' ');
-      writeln('LO SENTIMOS!');
-      writeln('NO ENCONTRAMOS COINCIDENCIA CON SUS SINTOMAS');
-      WriteLn('EN NUESTRA BASE DE DATOS');
-      textcolor(white);
-    End;
+  percentage := (possibleIllness[1] / n) * 100;
+  Resultado_Diagnostico(percentage, diagnostico[possibleIllness[2]]);
 End;
 
 End.
