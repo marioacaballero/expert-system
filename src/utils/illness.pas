@@ -9,11 +9,6 @@ Interface
 Uses 
 crt, sysUtils, symptoms, vectores;
 
-Procedure POSIBLES_ENFERMEDADES(m:T_matriz;v:T_vector);
-Function timer(text: String): string;
-
-Implementation
-
 Const 
   diagnostico: array [1..g] Of string = ('Resfriado comun', 'Gripe',
                                          'Alergia', 'Migraña',
@@ -26,6 +21,11 @@ Const
                                          'Enfermedad pulmonar intersticial',
                                          'Intoxicación alimentaria',
                                          'Embolia pulmonar','Neumonía');
+
+Procedure POSIBLES_ENFERMEDADES(m:T_matriz;v:T_vector);
+Function timer(text: String): string;
+
+Implementation
 
 Function timer(text: String): string;
 
@@ -42,28 +42,70 @@ Begin
   writeln('');
 End;
 
-Function Resultado_Diagnostico(percentage: real; illnes: String): string;
+Procedure invertBubbleSort(Var arr: illnessArray);
+
+Var 
+  i, j: byte;
+  aux: illnessData;
 Begin
+  For i:= 1 To n - 1 Do
+    For j:= 1 To n - i Do
+      If arr[j].percentage < arr[j + 1].percentage Then
+        Begin
+          aux := arr[j];
+          arr[j] := arr[j + 1];
+          arr[j + 1] := aux;
+        End;
+End;
+
+Function Resultado_Diagnostico(possibleIllness: illnessArray): string;
+
+Var 
+  i, count: byte;
+  rounded: integer;
+Begin
+  count := 0;
+  invertBubbleSort(possibleIllness);
   textcolor(blue);
   WriteLn(' ');
-  write('POSIBLE ENFERMEDAD: ');
+  WriteLn('RESULTADO: ');
   textcolor(red);
-  Write(FormatFloat('0.00', percentage),' % de tener ');
-  write(upcase(illnes));
+  If (possibleIllness[1].percentage = 100) Then
+    Begin
+      rounded := Round(possibleIllness[1].percentage);
+      Write(rounded, ' % de tener ');
+      write(upcase(diagnostico[possibleIllness[1].name]));
+    End
+  Else
+    Begin
+      For i:= 1 To n Do
+        If (possibleIllness[i].name <> 0) Then
+          Begin
+            Inc(count);
+            WriteLn(FormatFloat('0.00', possibleIllness[i].percentage),
+            ' % de tener ', upcase(diagnostico[possibleIllness[i].name]));
+          End;
+      If (count = 0) Then
+        Begin
+          WriteLn('No es posible diagnosticar una enfermedad');
+          WriteLn('basada en los sintomas ingresados');
+        End;
+    End;
   textcolor(white);
 End;
 
 Procedure POSIBLES_ENFERMEDADES(m:T_matriz;v:T_vector);
 
 Var 
-  i, j, illnessCount: byte;
+  i, j, k, illnessCount: byte;
   flag: boolean;
-  possibleIllness: array [1..2] Of byte;
-  //1: illnessCount, 2: i
+  possibleIllness: illnessArray;
   percentage: real;
 Begin
   i := 1;
+  k := 1;
   flag := false;
+  inicializarvPosibles(possibleIllness);
   While (i <= g) And (Not flag) Do
     Begin
       illnessCount := 0;
@@ -72,23 +114,16 @@ Begin
           Inc(illnessCount);
       If (illnessCount = n) Then
         flag := true;
-      If (i = 1) Then
+      percentage := (illnessCount / n) * 100;
+      If ( percentage >= 60 ) And ( k < n + 1 ) Then
         Begin
-          possibleIllness[1] := illnessCount;
-          possibleIllness[2] := i;
-        End
-      Else
-        Begin
-          If (illnessCount > possibleIllness[1]) Then
-            Begin
-              possibleIllness[1] := illnessCount;
-              possibleIllness[2] := i;
-            End;
+          possibleIllness[k].percentage := percentage;
+          possibleIllness[k].name := i;
+          Inc(k);
         End;
       Inc(i);
     End;
-  percentage := (possibleIllness[1] / n) * 100;
-  Resultado_Diagnostico(percentage, diagnostico[possibleIllness[2]]);
+  Resultado_Diagnostico(possibleIllness);
 End;
 
 End.
